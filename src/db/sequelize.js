@@ -1,4 +1,7 @@
 const Sequelize = require('sequelize');
+const chalk = require('chalk');
+const errorStyle = chalk.inverse.red;
+
 //const env=require('../cong')
 
 
@@ -15,6 +18,6 @@ sequelize
 		console.log('Connection to db has been established successfully.');
 	})
 	.catch(err => {
-		console.error('Unable to connect to the database:', err);
+		console.error(errorStyle('Unable to connect to the database:'), err);
 	});
 module.exports={sequelize,Sequelize}

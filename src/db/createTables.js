@@ -1,8 +1,6 @@
-
-
 const {sequelize}=require('./sequelize')
 
-//require('./dbModels')
+require('./dbModels')
 
 sequelize.sync({
   force: true

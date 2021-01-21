@@ -48,7 +48,7 @@ const Token=sequelize.define('token',{
     }
 })
 
-Token.belongsTo(User,{as:'userName'}); // Constraint - userName foreign key for tokens' table
+Token.belongsTo(User,{foreignKey: 'userName'}); // Constraint - userName foreign key for tokens' table
 
 
 module.exports = {User,Token };
