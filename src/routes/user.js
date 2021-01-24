@@ -2,8 +2,8 @@ const express = require('express')
 const { async } = require('validate.js')
 const { User, Token } = require('../db/dbModels')
 const router = new express.Router()
-var jwt = require('jsonwebtoken');
-
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const chalk = require('chalk');
 const errorStyle = chalk.inverse.red;
 
@@ -18,7 +18,8 @@ router.get('/', async (req, res) => {
 
 router.post('signup', async (req, res) => {
     try {
-        const user = await User.create(req.body)
+        const hashPass = bcrypt.hashSync(req.body.password, 8);
+        const user = await User.create({...req.body,password:hashPass})
         res.send(user)
     } catch (e) {
         res.status(400).send(e)
@@ -29,11 +30,12 @@ router.post('signup', async (req, res) => {
 router.post('login', async (req, res) => {
     try {
         const { userName, password } = req.body
-        const isUserExist = await User.findOne({ where: { userName, password } })
-        if (isUserExist) {
+        const user = await User.findOne({ where: { userName } })
+        const isValidPass= bcrypt.compareSync(password,user.password)
+        if (user&&!!isValidPass) {
             const token = jwt.sign(userName, process.env.JWT, '24h')
-            await Token.create({userName,token})
-            res.send({ token })
+            await Token.create({ userName, token })
+            res.send({ token,userName })
         } else {
             throw new Error({ error: 'wrong user name or password' })
         }
@@ -41,5 +43,22 @@ router.post('login', async (req, res) => {
         res.status(400).send(e)
         console.log(errorStyle(e));
     }
+})
+
+router.get('authUser', async (req, res) => {
+    try {
+        const token = req.header('token')// .replace('Bearer ', '')
+        const user = await Token.findOne({ where: { token } })
+        const isValidToken=jwt.verify(token,process.env.JWT)
+        if (isAuthUser&&!!isValidToken) {
+            res.send(user)
+        } else {
+            throw new Error({ error: 'unauthorized' })
+        }
+    } catch (e) {
+        res.status(400).send(e)
+        console.log(errorStyle(e));
+    }
+
 })
 module.exports = router
