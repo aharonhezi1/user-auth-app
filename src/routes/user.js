@@ -7,17 +7,10 @@ const bcrypt = require('bcryptjs');
 const chalk = require('chalk');
 const errorStyle = chalk.inverse.red;
 
-router.get('/', async (req, res) => {
-    try {
-        res.send({ success: 'yes' })
-    } catch (e) {
-        res.status(400).send(e)
-        console.log(errorStyle(e));
-    }
-})
 
-router.post('signup', async (req, res) => {
+router.post('/signup', async (req, res) => {
     try {
+        console.log(req.body);
         const hashPass = bcrypt.hashSync(req.body.password, 8);
         const user = await User.create({...req.body,password:hashPass})
         res.send(user)
@@ -27,13 +20,15 @@ router.post('signup', async (req, res) => {
     }
 })
 
-router.post('login', async (req, res) => {
+router.post('/login', async (req, res) => {
     try {
         const { userName, password } = req.body
         const user = await User.findOne({ where: { userName } })
+        // console.log(user.password);
         const isValidPass= bcrypt.compareSync(password,user.password)
         if (user&&!!isValidPass) {
-            const token = jwt.sign(userName, process.env.JWT, '24h')
+            const token = jwt.sign({userName}, process.env.JWT, {expiresIn:'24h'})
+            console.log(token);
             await Token.create({ userName, token })
             res.send({ token,userName })
         } else {
@@ -45,7 +40,7 @@ router.post('login', async (req, res) => {
     }
 })
 
-router.get('authUser', async (req, res) => {
+router.get('/authUser', async (req, res) => {
     try {
         const token = req.header('token')// .replace('Bearer ', '')
         const user = await Token.findOne({ where: { token } })
@@ -60,5 +55,14 @@ router.get('authUser', async (req, res) => {
         console.log(errorStyle(e));
     }
 
+})
+
+router.get('/', async (req, res) => {
+    try {
+        res.send({ success: 'yes' })
+    } catch (e) {
+        res.status(400).send(e)
+        console.log(errorStyle(e));
+    }
 })
 module.exports = router
