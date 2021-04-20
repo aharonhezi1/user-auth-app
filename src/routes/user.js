@@ -5,6 +5,7 @@ const router = new express.Router()
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const chalk = require('chalk');
+const isValidIsraeliID = require('../utils/isValidIsraeliID');
 const errorStyle = chalk.inverse.red;
 
 
@@ -51,17 +52,19 @@ router.get('/authUser', async (req, res) => {
             throw new Error({ error: 'unauthorized' })
         }
     } catch (e) {
-        res.status(400).send(e)
+        res.status(401).send(e)
         console.log(errorStyle(e));
     }
 
 })
-router.get('/iValidUserName', async (res, res) => {
+router.get('/isUserNameExist', async (req, res) => {
     try {
-        const { userName } = req.body;
-        const userName = await User.findOne({ where: { userName } })
-        if (userName) {
-            throw new Error({ error: 'This user name already exists!' })
+        console.log(req.params);
+        const { userName } = req.query;
+        const user = await User.findOne({ where: { userName } })
+        if (user) {
+            //   throw new Error({ error: 'This user name already exists!' })
+            res.send({ error: 'This user name already exists!' })
         } else {
             res.send()
         }
@@ -70,15 +73,35 @@ router.get('/iValidUserName', async (res, res) => {
         console.log(errorStyle(e));
     }
 })
-router.get('/iValidEmail', async (res, res) => {
+router.get('/isEmailExist', async (req, res) => {
     try {
-        const { email } = req.body;
-        const email = await User.findOne({ where: { email } })
-        if (email) {
-            throw new Error({ error: 'This email address already exists!' })
+        const { email } = req.query;
+        const user = await User.findOne({ where: { email } })
+        if (user) {
+            res.send({ error: 'This email address already exists!' })
         } else {
             res.send()
         }
+    } catch (e) {
+        res.status(400).send(e)
+        console.log(errorStyle(e));
+    }
+})
+
+router.get('/isIdValid', async (req, res) => {
+    try {
+        const { id } = req.query;
+        if (!isValidIsraeliID(id)) {
+            res.send({ error: 'This is an invalid Israeli id' })
+        } else {
+            const user = await User.findOne({ where: { id } })
+            if (user) {
+                res.send({ error: 'This id number already exists!' })
+            } else {
+                res.send()
+            }
+        }
+
     } catch (e) {
         res.status(400).send(e)
         console.log(errorStyle(e));
