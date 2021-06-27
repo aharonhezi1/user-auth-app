@@ -31,7 +31,7 @@ router.post('/login', async (req, res) => {
             const token = jwt.sign({ userName }, process.env.JWT, { expiresIn: '24h' })
             console.log(token);
             await Token.create({ userName, token })
-            res.send({ token, userName })
+            res.send({ token, name:user.name })
         } else {
             throw new Error({ error: 'wrong user name or password' })
         }
@@ -41,12 +41,13 @@ router.post('/login', async (req, res) => {
     }
 })
 
-router.get('/authUser', async (req, res) => {
+router.post('/authUser', async (req, res) => {
     try {
-        const token = req.header('token')// .replace('Bearer ', '')
+        // const token = req.header('token')// .replace('Bearer ', '')
+        const {token}=req.body
         const user = await Token.findOne({ where: { token } })
         const isValidToken = jwt.verify(token, process.env.JWT)
-        if (isAuthUser && !!isValidToken) {
+        if (user && !!isValidToken) {
             res.send(user)
         } else {
             throw new Error({ error: 'unauthorized' })
@@ -108,12 +109,12 @@ router.get('/isIdValid', async (req, res) => {
     }
 })
 
-router.get('/', async (req, res) => {
-    try {
-        res.send({ success: 'yes' })
-    } catch (e) {
-        res.status(400).send(e)
-        console.log(errorStyle(e));
-    }
-})
+// router.get('/', async (req, res) => {
+//     try {
+//         res.send({ success: 'yes' })
+//     } catch (e) {
+//         res.status(400).send(e)
+//         console.log(errorStyle(e));
+//     }
+// })
 module.exports = router
